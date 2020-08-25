@@ -61,11 +61,9 @@
             
           </tab>
           <tab heading="Edit Photos">
-            <p>Photo edit will go here</p>
-           
-           <p>{{user.interests}}</p> 
+            <app-photo-editor [photos]="user.photos"
+             (getMemberPhotoChange)="updateMainPhoto($event)"></app-photo-editor>
           </tab>
-          
         </tabset> 
       </div>
     </div>

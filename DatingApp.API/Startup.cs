@@ -36,12 +36,15 @@ namespace DatingApp.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<DataContext>(x=> x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddAutoMapper(typeof(DatingRepository).Assembly);
+            
             services.AddControllers().AddNewtonsoftJson(opt => {
                 opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             }
             );
             services.AddCors ();
+            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
+            services.AddAutoMapper(typeof(DatingRepository).Assembly);
+            services.AddTransient<Seed>();
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped<IDatingRepository, DatingRepository>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -53,7 +56,7 @@ namespace DatingApp.API
                          .GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
                     ValidateIssuer = false,
                     ValidateAudience = false
-                 }   ;
+                 };
                 });
         }
 
@@ -71,7 +74,7 @@ namespace DatingApp.API
                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
                        var error = context.Features.Get<IExceptionHandlerFeature>();
-                       if (error != null)
+                       if (error != null) 
                        {
                            context.Response.AddApplicationError(error.Error.Message);
                            await context.Response.WriteAsync(error.Error.Message);
@@ -86,12 +89,13 @@ namespace DatingApp.API
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseDefaultFiles();
 
             app.UseStaticFiles();
 
-            app.UseAuthorization();
+            
 
             app.UseEndpoints(endpoints =>
             {
